@@ -23,15 +23,26 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Flutter analyze
-        run: flutter analyze --no-pub || true
+      - name: Flutter doctor
+        run: flutter doctor -v
 
       - name: Build iOS (no codesign)
         run: flutter build ipa --no-codesign
 
+      - name: List build output
+        run: |
+          echo "=== Build directory contents ==="
+          find build/ios -name "*.ipa" -o -name "*.xcarchive" 2>/dev/null || true
+          ls -la build/ios/ipa/ 2>/dev/null || echo "No ipa directory"
+          ls -la build/ios/ 2>/dev/null || echo "No ios directory"
+
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: medreminder-ipa
-          path: build/ios/ipa/*.ipa
+          path: |
+            build/ios/ipa/*.ipa
+            build/ios/iphoneos/*.app
           retention-days: 7
+          if-no-files-found: warn
