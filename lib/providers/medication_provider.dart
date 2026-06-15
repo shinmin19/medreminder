@@ -39,12 +39,22 @@ class MedicationProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    await _notif.initialize();
-    await _notif.requestPermission();
-    await _loadMedications();
-    await _generateTodayRecords();
-    await _loadTodayRecords();
-    await _loadStats();
+    try {
+      await _notif.initialize();
+      await _notif.requestPermission();
+    } catch (e) {
+      print('Notification init failed: $e');
+      // Continue without notifications
+    }
+
+    try {
+      await _loadMedications();
+      await _generateTodayRecords();
+      await _loadTodayRecords();
+      await _loadStats();
+    } catch (e) {
+      print('Data load failed: $e');
+    }
 
     _isLoading = false;
     notifyListeners();

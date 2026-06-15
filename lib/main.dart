@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/medication_provider.dart';
@@ -10,7 +11,20 @@ import 'screens/add_medication_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MedReminderApp());
+  
+  // Catch all errors
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    print('FlutterError: ${details.exception}');
+    print('Stack: ${details.stack}');
+  };
+  
+  runZonedGuarded(() {
+    runApp(const MedReminderApp());
+  }, (error, stack) {
+    print('ZoneError: $error');
+    print('Stack: $stack');
+  });
 }
 
 class MedReminderApp extends StatelessWidget {
@@ -50,7 +64,10 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens,
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
