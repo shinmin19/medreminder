@@ -23,53 +23,44 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Install CocoaPods
-        run: |
-          cd ios
-          pod install --repo-update
-          cd ..
+      - name: Build iOS app bundle
+        run: flutter build ios --release --no-codesign
 
-      - name: Build iOS (no codesign)
-        run: flutter build ipa --no-codesign
-
-      - name: Find and package IPA
+      - name: Create IPA
         run: |
-          IPA_FILE=$(find build/ios/ipa -name "*.ipa" -type f 2>/dev/null | head -1)
+          # Find the built .app
+          APP_PATH=$(find build/ios/iphoneos -name "*.app" -type d | head -1)
+          echo "Found app: $APP_PATH"
           
-          if [ -n "$IPA_FILE" ]; then
-            cp "$IPA_FILE" medreminder.ipa
-          else
-            flutter build ios --no-codesign --release
-            APP_PATH=$(find build/ios/iphoneos -name "*.app" -type d | head -1)
-            if [ -n "$APP_PATH" ]; then
-              mkdir -p Payload
-              cp -r "$APP_PATH" Payload/
-              zip -qr medreminder.ipa Payload/
-              rm -rf Payload
-            else
-              echo "ERROR: No .app bundle found!"
-              exit 1
-            fi
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: No .app bundle found!"
+            exit 1
           fi
+          
+          # Create IPA structure
+          rm -rf Payload medreminder.ipa
+          mkdir -p Payload
+          cp -r "$APP_PATH" Payload/
+          
+          # Create IPA with proper compression
+          zip -r -q medreminder.ipa Payload/
+          rm -rf Payload
+          
+          echo "IPA created:"
           ls -lh medreminder.ipa
+          unzip -l medreminder.ipa | head -5
 
       - name: Upload IPA to server via SCP
         run: |
-          # Install sshpass
           brew install hudochenkov/sshpass/sshpass || true
-          
-          # Upload via scp
           sshpass -p '${{ secrets.SERVER_PASSWORD }}' \
             scp -o StrictHostKeyChecking=no \
             medreminder.ipa \
             root@${{ secrets.SERVER_HOST }}:/home/center/gateway/site/medreminder.ipa
-          
-          # Set permissions
           sshpass -p '${{ secrets.SERVER_PASSWORD }}' \
             ssh -o StrictHostKeyChecking=no \
             root@${{ secrets.SERVER_HOST }} \
             "chmod 644 /home/center/gateway/site/medreminder.ipa"
-          
           echo "IPA uploaded to http://${{ secrets.SERVER_HOST }}/medreminder.ipa"
 
       - name: Upload artifact
