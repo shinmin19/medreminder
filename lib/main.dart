@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'providers/medication_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/calendar_screen.dart';
@@ -9,8 +10,9 @@ import 'screens/add_medication_screen.dart';
 import 'screens/settings_screen.dart';
 import 'utils/theme.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('zh_CN', null);
   runApp(const MedReminderApp());
 }
 
