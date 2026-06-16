@@ -1,9 +1,21 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
-import 'utils/theme.dart';
+
+// ==================== Theme ====================
+class AppTheme {
+  static const Color primaryColor = Color(0xFF4CAF50);
+  static const Color textSecondary = Color(0xFF757575);
+
+  static ThemeData get greenTheme => ThemeData(
+    primaryColor: primaryColor,
+    colorScheme: ColorScheme.fromSeed(seedColor: primaryColor),
+    scaffoldBackgroundColor: const Color(0xFFF5F5F5),
+    appBarTheme: const AppBarTheme(backgroundColor: primaryColor, foregroundColor: Colors.white, elevation: 0, centerTitle: true),
+    useMaterial3: true,
+  );
+}
 
 // ==================== Models ====================
 class Medication {
