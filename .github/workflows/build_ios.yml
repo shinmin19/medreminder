@@ -20,6 +20,9 @@ jobs:
           flutter-version: '3.44.2'
           channel: 'stable'
 
+      - name: Disable UIScene migration (fixes iOS 26/27 black screen)
+        run: flutter config --no-enable-uiscene-migration
+
       - name: Flutter pub get
         run: flutter pub get
 
@@ -28,7 +31,6 @@ jobs:
 
       - name: Create IPA
         run: |
-          # Find the built .app
           APP_PATH=$(find build/ios/iphoneos -name "*.app" -type d | head -1)
           echo "Found app: $APP_PATH"
           
@@ -37,18 +39,14 @@ jobs:
             exit 1
           fi
           
-          # Create IPA structure
           rm -rf Payload medreminder.ipa
           mkdir -p Payload
           cp -r "$APP_PATH" Payload/
-          
-          # Create IPA with proper compression
           zip -r -q medreminder.ipa Payload/
           rm -rf Payload
           
           echo "IPA created:"
           ls -lh medreminder.ipa
-          unzip -l medreminder.ipa | head -5
 
       - name: Upload IPA to server via SCP
         run: |
