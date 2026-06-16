@@ -47,6 +47,9 @@ class MedicationProvider extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+
+    // Auto-generate today's records after loading
+    await generateRecordsForDate(DateTime.now());
   }
 
   Future<void> addMedication({
@@ -136,7 +139,8 @@ class MedicationProvider extends ChangeNotifier {
         await _db.insertRecord(record);
       }
     }
-    await loadData();
+    // Don't call loadData() here to avoid infinite recursion
+    // The caller should reload data after calling this method
   }
 
   void setSelectedDate(DateTime date) {

@@ -22,9 +22,6 @@ class HomeScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Auto-generate records for today
-          provider.generateRecordsForDate(DateTime.now());
-
           final todayRecords = provider.todayRecords;
           final now = DateTime.now();
 
