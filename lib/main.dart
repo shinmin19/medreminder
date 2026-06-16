@@ -11,7 +11,12 @@ class MedReminderApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'MedReminder iOS 27 Test',
+      title: '吃药提醒',
+      theme: ThemeData(
+        colorSchemeSeed: Colors.green,
+        useMaterial3: true,
+        brightness: Brightness.light,
+      ),
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -33,9 +38,11 @@ class HelloScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Flutter iOS 27 Test'),
+        title: const Text('吃药提醒'),
         backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
       ),
       body: const Center(
         child: Column(
@@ -52,11 +59,12 @@ class HelloScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
+                color: Colors.black,
               ),
             ),
             SizedBox(height: 16),
             Text(
-              '测试Flutter能否在iOS 27上运行',
+              '吃药提醒APP - iOS 27测试通过！',
               style: TextStyle(
                 fontSize: 18,
                 color: Colors.grey,
@@ -64,10 +72,10 @@ class HelloScreen extends StatelessWidget {
             ),
             SizedBox(height: 8),
             Text(
-              'ZERO native plugins - pure Dart/Flutter',
+              'Flutter运行正常 ✅',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.blue,
+                color: Colors.green,
               ),
             ),
           ],
