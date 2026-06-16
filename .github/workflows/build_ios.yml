@@ -30,22 +30,21 @@ jobs:
           cd ..
 
       - name: Build iOS (no codesign)
-        run: flutter build ipa --no-codesign --verbose 2>&1 | tee build.log
+        run: flutter build ipa --no-codesign
 
-      - name: Find IPA files
+      - name: Find and package IPA
         run: |
           echo "=== Searching for IPA files ==="
           find . -name "*.ipa" -type f 2>/dev/null
-          echo "=== Build directory ==="
-          ls -laR build/ios/ 2>/dev/null || echo "No build/ios directory"
-          echo "=== Build log tail ==="
-          tail -50 build.log 2>/dev/null || echo "No build log"
-
-      - name: Package IPA
-        run: |
-          # Create IPA manually if flutter build didn't produce one
-          if [ ! -f "build/ios/ipa/*.ipa" ]; then
-            echo "No IPA found, trying alternative build..."
+          
+          # Check if flutter build ipa produced an IPA
+          IPA_FILE=$(find build/ios/ipa -name "*.ipa" -type f 2>/dev/null | head -1)
+          
+          if [ -n "$IPA_FILE" ]; then
+            echo "Found IPA from flutter build: $IPA_FILE"
+            cp "$IPA_FILE" medreminder.ipa
+          else
+            echo "No IPA from flutter build, building .app manually..."
             flutter build ios --no-codesign --release
             
             # Find the .app bundle
@@ -58,22 +57,22 @@ jobs:
               cp -r "$APP_PATH" Payload/
               
               # Create IPA
-              zip -r medreminder.ipa Payload/
+              zip -qr medreminder.ipa Payload/
               rm -rf Payload
               
               echo "IPA created: medreminder.ipa"
-              ls -lh medreminder.ipa
             else
-              echo "No .app bundle found"
+              echo "ERROR: No .app bundle found!"
+              exit 1
             fi
           fi
+          
+          ls -lh medreminder.ipa
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: medreminder-ipa
-          path: |
-            *.ipa
-            build/ios/ipa/*.ipa
+          path: medreminder.ipa
           retention-days: 7
-          if-no-files-found: warn
+          if-no-files-found: error
