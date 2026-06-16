@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -7,13 +8,26 @@ import 'screens/calendar_screen.dart';
 import 'screens/stats_screen.dart';
 import 'screens/medication_list_screen.dart';
 import 'screens/add_medication_screen.dart';
-import 'screens/settings_screen.dart';
 import 'utils/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('zh_CN', null);
-  runApp(const MedReminderApp());
+
+  // Catch all Flutter framework errors
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint('FlutterError: ${details.exception}');
+    debugPrint('Stack: ${details.stack}');
+  };
+
+  // Catch all async errors
+  runZonedGuarded(() async {
+    await initializeDateFormatting('zh_CN', null);
+    runApp(const MedReminderApp());
+  }, (error, stack) {
+    debugPrint('Uncaught error: $error');
+    debugPrint('Stack: $stack');
+  });
 }
 
 class MedReminderApp extends StatelessWidget {
@@ -22,7 +36,7 @@ class MedReminderApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => MedicationProvider()..loadData(),
+      create: (_) => MedicationProvider()..init(),
       child: MaterialApp(
         title: '用药提醒',
         debugShowCheckedModeBanner: false,

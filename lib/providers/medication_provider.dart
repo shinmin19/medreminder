@@ -12,11 +12,13 @@ class MedicationProvider extends ChangeNotifier {
   List<MedicationRecord> _records = [];
   DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
+  String? _error;
 
   List<Medication> get medications => _medications;
   List<MedicationRecord> get records => _records;
   DateTime get selectedDate => _selectedDate;
   bool get isLoading => _isLoading;
+  String? get error => _error;
 
   List<Medication> get activeMedications =>
       _medications.where((m) => m.isActive).toList();
@@ -38,18 +40,35 @@ class MedicationProvider extends ChangeNotifier {
     }).toList();
   }
 
-  Future<void> loadData() async {
+  /// Safe initialization - called once at app start
+  Future<void> init() async {
     _isLoading = true;
+    _error = null;
     notifyListeners();
 
-    _medications = await _db.getAllMedications();
-    _records = await _db.getAllRecords();
+    try {
+      _medications = await _db.getAllMedications();
+      _records = await _db.getAllRecords();
+    } catch (e) {
+      _error = '加载数据失败: $e';
+      debugPrint('Provider init error: $e');
+    }
 
     _isLoading = false;
     notifyListeners();
+  }
 
-    // Auto-generate today's records after loading
-    await generateRecordsForDate(DateTime.now());
+  /// Reload data from database (no generateRecords call)
+  Future<void> loadData() async {
+    try {
+      _medications = await _db.getAllMedications();
+      _records = await _db.getAllRecords();
+      _error = null;
+    } catch (e) {
+      _error = '加载数据失败: $e';
+      debugPrint('loadData error: $e');
+    }
+    notifyListeners();
   }
 
   Future<void> addMedication({
@@ -105,42 +124,45 @@ class MedicationProvider extends ChangeNotifier {
   }
 
   Future<void> generateRecordsForDate(DateTime date) async {
-    final existingRecords = getRecordsForDate(date);
-    final weekday = date.weekday;
+    try {
+      final existingRecords = getRecordsForDate(date);
+      final weekday = date.weekday;
 
-    for (final medication in activeMedications) {
-      for (final schedule in medication.schedules) {
-        if (!schedule.isActive) continue;
-        if (!schedule.repeatDays.contains(weekday)) continue;
+      for (final medication in activeMedications) {
+        for (final schedule in medication.schedules) {
+          if (!schedule.isActive) continue;
+          if (!schedule.repeatDays.contains(weekday)) continue;
 
-        // Check if record already exists
-        final alreadyExists = existingRecords.any(
-          (r) =>
-              r.medicationId == medication.id &&
-              r.scheduleId == schedule.id,
-        );
-        if (alreadyExists) continue;
+          final alreadyExists = existingRecords.any(
+            (r) =>
+                r.medicationId == medication.id &&
+                r.scheduleId == schedule.id,
+          );
+          if (alreadyExists) continue;
 
-        final parts = schedule.timeOfDay.split(':');
-        final scheduledTime = DateTime(
-          date.year,
-          date.month,
-          date.day,
-          int.parse(parts[0]),
-          int.parse(parts[1]),
-        );
+          final parts = schedule.timeOfDay.split(':');
+          final scheduledTime = DateTime(
+            date.year,
+            date.month,
+            date.day,
+            int.parse(parts[0]),
+            int.parse(parts[1]),
+          );
 
-        final record = MedicationRecord(
-          id: _uuid.v4(),
-          medicationId: medication.id,
-          scheduleId: schedule.id,
-          scheduledTime: scheduledTime,
-        );
-        await _db.insertRecord(record);
+          final record = MedicationRecord(
+            id: _uuid.v4(),
+            medicationId: medication.id,
+            scheduleId: schedule.id,
+            scheduledTime: scheduledTime,
+          );
+          await _db.insertRecord(record);
+        }
       }
+      // Reload to pick up new records
+      await loadData();
+    } catch (e) {
+      debugPrint('generateRecordsForDate error: $e');
     }
-    // Don't call loadData() here to avoid infinite recursion
-    // The caller should reload data after calling this method
   }
 
   void setSelectedDate(DateTime date) {
