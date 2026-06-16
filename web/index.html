@@ -1,46 +1,478 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
-  <base href="$FLUTTER_BASE_HREF">
-
-  <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
-
-  <!-- iOS meta tags & icons -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="medreminder">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
-
-  <title>medreminder</title>
-  <link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#4CAF50">
+<title>用药提醒</title>
+<link rel="manifest" href="manifest.json">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #212121; -webkit-tap-highlight-color: transparent; }
+.app { max-width: 480px; margin: 0 auto; min-height: 100vh; padding-bottom: 70px; }
+.header { background: #4CAF50; color: white; padding: 16px; text-align: center; font-size: 18px; font-weight: bold; position: sticky; top: 0; z-index: 100; }
+.card { background: white; border-radius: 12px; padding: 16px; margin: 12px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.stat-row { display: flex; gap: 12px; padding: 0 16px; margin-top: 12px; }
+.stat-card { flex: 1; background: white; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.stat-card .num { font-size: 28px; font-weight: bold; }
+.stat-card .label { font-size: 12px; color: #757575; margin-top: 4px; }
+.record-card { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+.record-card:last-child { border-bottom: none; }
+.record-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 12px; flex-shrink: 0; }
+.record-info { flex: 1; }
+.record-info .name { font-weight: bold; font-size: 16px; }
+.record-info .detail { font-size: 13px; color: #757575; margin-top: 2px; }
+.record-status { padding: 4px 10px; border-radius: 12px; font-size: 12px; margin-left: 8px; }
+.record-actions { display: flex; gap: 4px; margin-left: 8px; }
+.btn-icon { width: 36px; height: 36px; border-radius: 50%; border: none; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.btn-take { background: #e8f5e9; color: #4CAF50; }
+.btn-skip { background: #ffebee; color: #f44336; }
+.empty { text-align: center; padding: 40px 16px; color: #999; }
+.empty .icon { font-size: 48px; margin-bottom: 12px; }
+.fab { position: fixed; bottom: 80px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: #4CAF50; color: white; border: none; font-size: 28px; box-shadow: 0 4px 12px rgba(76,175,80,0.4); cursor: pointer; z-index: 100; }
+.tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; box-shadow: 0 -2px 8px rgba(0,0,0,0.08); z-index: 100; max-width: 480px; margin: 0 auto; }
+.tab { flex: 1; padding: 8px 0; text-align: center; font-size: 11px; color: #999; cursor: pointer; }
+.tab.active { color: #4CAF50; }
+.tab .icon { font-size: 22px; }
+/* Modal */
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: flex-end; justify-content: center; }
+.modal { background: white; border-radius: 16px 16px 0 0; padding: 20px 16px; width: 100%; max-width: 480px; max-height: 80vh; overflow-y: auto; }
+.modal h3 { text-align: center; font-size: 18px; margin-bottom: 16px; }
+.input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; margin-bottom: 12px; }
+.input:focus { outline: none; border-color: #4CAF50; }
+.row { display: flex; gap: 8px; }
+.row .input { flex: 1; }
+.btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
+.btn-primary { background: #4CAF50; color: white; }
+.btn-primary:active { background: #388E3C; }
+/* Calendar */
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 0 4px; }
+.cal-header { text-align: center; font-size: 12px; color: #999; padding: 8px 0; font-weight: bold; }
+.cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 14px; cursor: pointer; position: relative; }
+.cal-day.today { background: #4CAF50; color: white; font-weight: bold; }
+.cal-day.has-records::after { content: ''; position: absolute; bottom: 4px; width: 6px; height: 6px; border-radius: 50%; background: #4CAF50; }
+.cal-day.all-taken { background: #e8f5e9; }
+.cal-day.has-pending::after { background: #ff9800; }
+.cal-month { text-align: center; font-size: 18px; font-weight: bold; padding: 12px; }
+/* Stats */
+.stat-big { text-align: center; padding: 24px; }
+.stat-big .num { font-size: 48px; font-weight: bold; color: #4CAF50; }
+.stat-big .label { font-size: 14px; color: #757575; }
+.progress-bar { height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+.progress-fill { height: 100%; background: #4CAF50; border-radius: 4px; transition: width 0.3s; }
+.hidden { display: none !important; }
+.page { display: none; }
+.page.active { display: block; }
+</style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+<div class="app" id="app">
+  <!-- Header -->
+  <div class="header" id="headerTitle">今日用药</div>
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
-  <script src="flutter_bootstrap.js" async></script>
+  <!-- Home Page -->
+  <div class="page active" id="page-home">
+    <div class="card" id="dateCard"></div>
+    <div class="stat-row" id="statRow"></div>
+    <div style="padding: 0 16px; margin-top: 16px;">
+      <div style="font-size: 18px; font-weight: bold;">今日用药计划</div>
+    </div>
+    <div id="recordsList"></div>
+  </div>
+
+  <!-- Calendar Page -->
+  <div class="page" id="page-calendar">
+    <div class="cal-month" id="calMonth"></div>
+    <div class="card">
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+  </div>
+
+  <!-- Stats Page -->
+  <div class="page" id="page-stats">
+    <div class="card" id="statsContent"></div>
+  </div>
+
+  <!-- Meds Page -->
+  <div class="page" id="page-meds">
+    <div id="medsList"></div>
+  </div>
+
+  <!-- FAB -->
+  <button class="fab" onclick="showAddModal()">+</button>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab active" onclick="switchTab('home')"><div class="icon">🏠</div>首页</div>
+    <div class="tab" onclick="switchTab('calendar')"><div class="icon">📅</div>日历</div>
+    <div class="tab" onclick="switchTab('stats')"><div class="icon">📊</div>统计</div>
+    <div class="tab" onclick="switchTab('meds')"><div class="icon">💊</div>药物</div>
+  </div>
+</div>
+
+<!-- Add Modal -->
+<div class="modal-overlay hidden" id="addModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3>添加药物</h3>
+    <input class="input" id="medName" placeholder="药物名称 *" autocomplete="off">
+    <div class="row">
+      <input class="input" id="medDosage" placeholder="剂量" autocomplete="off">
+      <input class="input" id="medUnit" placeholder="单位" autocomplete="off">
+    </div>
+    <div style="margin-bottom:12px;">
+      <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">用药时间</div>
+      <div id="scheduleList"></div>
+      <button style="background:none;border:1px dashed #4CAF50;color:#4CAF50;padding:10px;border-radius:8px;width:100%;font-size:14px;cursor:pointer;" onclick="addSchedule()">+ 添加时间</button>
+    </div>
+    <button class="btn btn-primary" onclick="saveMedication()">添加</button>
+  </div>
+</div>
+
+<script>
+// ============ Data ============
+const STORAGE_KEY = 'medreminder_v2';
+let data = { medications: [], records: [] };
+let newSchedules = [];
+let currentTab = 'home';
+let calYear, calMonth;
+
+function loadData() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) data = JSON.parse(saved);
+  } catch(e) { console.error(e); }
+  generateTodayRecords();
+}
+
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+}
+
+// ============ Records ============
+function generateTodayRecords() {
+  const now = new Date();
+  const weekday = now.getDay() === 0 ? 7 : now.getDay(); // 1-7 Mon-Sun
+  const today = dateKey(now);
+
+  for (const med of data.medications.filter(m => m.isActive)) {
+    for (const sch of (med.schedules || [])) {
+      if (!sch.active) continue;
+      if (!sch.repeatDays.includes(weekday)) continue;
+      const exists = data.records.some(r =>
+        r.medId === med.id && r.time === sch.time && r.date === today
+      );
+      if (!exists) {
+        data.records.push({
+          id: genId(),
+          medId: med.id,
+          time: sch.time,
+          date: today,
+          taken: false,
+          skipped: false
+        });
+      }
+    }
+  }
+}
+
+function dateKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function getTodayRecords() {
+  const today = dateKey(new Date());
+  return data.records.filter(r => r.date === today);
+}
+
+function getRecordsForDate(dateStr) {
+  return data.records.filter(r => r.date === dateStr);
+}
+
+// ============ Pages ============
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', ['home','calendar','stats','meds'][i] === tab);
+  });
+  const titles = { home: '今日用药', calendar: '日历', stats: '统计', meds: '药物管理' };
+  document.getElementById('headerTitle').textContent = titles[tab];
+  render();
+}
+
+function render() {
+  if (currentTab === 'home') renderHome();
+  else if (currentTab === 'calendar') renderCalendar();
+  else if (currentTab === 'stats') renderStats();
+  else if (currentTab === 'meds') renderMeds();
+}
+
+// ============ Home ============
+function renderHome() {
+  const now = new Date();
+  const weekdays = ['日','一','二','三','四','五','六'];
+  document.getElementById('dateCard').innerHTML = `
+    <div style="display:flex;align-items:center;">
+      <div style="font-size:28px;margin-right:12px;">📅</div>
+      <div>
+        <div style="font-size:18px;font-weight:bold;">${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日</div>
+        <div style="color:#757575;font-size:13px;">星期${weekdays[now.getDay()]}</div>
+      </div>
+    </div>`;
+
+  const records = getTodayRecords();
+  const taken = records.filter(r => r.taken).length;
+  const skipped = records.filter(r => r.skipped).length;
+  const pending = records.length - taken - skipped;
+
+  document.getElementById('statRow').innerHTML = `
+    <div class="stat-card"><div class="num" style="color:#ff9800">${pending}</div><div class="label">待服</div></div>
+    <div class="stat-card"><div class="num" style="color:#4CAF50">${taken}</div><div class="label">已服</div></div>
+    <div class="stat-card"><div class="num" style="color:#f44336">${skipped}</div><div class="label">跳过</div></div>`;
+
+  if (records.length === 0) {
+    document.getElementById('recordsList').innerHTML = `
+      <div class="empty"><div class="icon">💊</div>
+        ${data.medications.length === 0 ? '暂无用药计划<br>点击 + 添加药物' : '今日暂无用药计划'}</div>`;
+    return;
+  }
+
+  records.sort((a, b) => a.time.localeCompare(b.time));
+  document.getElementById('recordsList').innerHTML = '<div class="card">' + records.map(r => {
+    const med = data.medications.find(m => m.id === r.medId);
+    if (!med) return '';
+    const color = r.taken ? '#4CAF50' : r.skipped ? '#f44336' : '#ff9800';
+    const bg = r.taken ? '#e8f5e9' : r.skipped ? '#ffebee' : '#fff3e0';
+    const status = r.taken ? '已服用' : r.skipped ? '已跳过' : '待服用';
+    return `<div class="record-card">
+      <div class="record-icon" style="background:${bg};color:${color};">${r.taken ? '✓' : r.skipped ? '✗' : '💊'}</div>
+      <div class="record-info">
+        <div class="name">${esc(med.name)}</div>
+        <div class="detail">${r.time} ${med.dosage||''} ${med.unit||''}</div>
+      </div>
+      <div class="record-status" style="background:${bg};color:${color};">${status}</div>
+      ${!r.taken && !r.skipped ? `<div class="record-actions">
+        <button class="btn-icon btn-take" onclick="markTaken('${r.id}')">✓</button>
+        <button class="btn-icon btn-skip" onclick="markSkipped('${r.id}')">✗</button>
+      </div>` : ''}
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function markTaken(id) {
+  const r = data.records.find(r => r.id === id);
+  if (r) { r.taken = true; saveData(); render(); }
+}
+
+function markSkipped(id) {
+  const r = data.records.find(r => r.id === id);
+  if (r) { r.skipped = true; saveData(); render(); }
+}
+
+// ============ Calendar ============
+function renderCalendar() {
+  if (!calYear) { const n = new Date(); calYear = n.getFullYear(); calMonth = n.getMonth() + 1; }
+  document.getElementById('calMonth').innerHTML = `${calYear}年${calMonth}月 <span style="font-size:12px;color:#999;">← → 点击切换</span>`;
+
+  const firstDay = new Date(calYear, calMonth - 1, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth, 0).getDate();
+  const today = new Date();
+  const todayStr = dateKey(today);
+
+  let html = ['日','一','二','三','四','五','六'].map(d => `<div class="cal-header">${d}</div>`).join('');
+
+  // Empty cells before first day
+  for (let i = 0; i < firstDay; i++) html += '<div></div>';
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${calYear}-${String(calMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = ds === todayStr;
+    const records = getRecordsForDate(ds);
+    const hasRecords = records.length > 0;
+    const allTaken = hasRecords && records.every(r => r.taken);
+    const hasPending = hasRecords && records.some(r => !r.taken && !r.skipped);
+    let cls = 'cal-day';
+    if (isToday) cls += ' today';
+    else if (allTaken) cls += ' all-taken';
+    if (hasRecords && !allTaken) cls += ' has-pending';
+    html += `<div class="${cls}" onclick="alert('${calYear}年${calMonth}月${d}日: ${records.length}条记录')">${d}</div>`;
+  }
+  document.getElementById('calGrid').innerHTML = html;
+}
+
+// Swipe support for calendar
+let touchStartX = 0;
+document.getElementById('page-calendar').addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+document.getElementById('page-calendar').addEventListener('touchend', e => {
+  const diff = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(diff) > 50) {
+    if (diff < 0) { calMonth++; if (calMonth > 12) { calMonth = 1; calYear++; } }
+    else { calMonth--; if (calMonth < 1) { calMonth = 12; calYear--; } }
+    renderCalendar();
+  }
+});
+
+// ============ Stats ============
+function renderStats() {
+  const records = data.records;
+  const total = records.length;
+  const taken = records.filter(r => r.taken).length;
+  const rate = total > 0 ? Math.round(taken / total * 100) : 0;
+
+  let html = `
+    <div class="stat-big">
+      <div class="num">${rate}%</div>
+      <div class="label">总服药率</div>
+      <div class="progress-bar" style="margin-top:12px;max-width:200px;margin-left:auto;margin-right:auto;">
+        <div class="progress-fill" style="width:${rate}%"></div>
+      </div>
+    </div>
+    <div class="stat-row" style="padding:0;margin-top:16px;">
+      <div class="stat-card"><div class="num" style="color:#4CAF50;font-size:20px;">${taken}</div><div class="label">已服用</div></div>
+      <div class="stat-card"><div class="num" style="color:#f44336;font-size:20px;">${records.filter(r=>r.skipped).length}</div><div class="label">已跳过</div></div>
+      <div class="stat-card"><div class="num" style="color:#ff9800;font-size:20px;">${total - taken - records.filter(r=>r.skipped).length}</div><div class="label">待服用</div></div>
+    </div>`;
+
+  if (data.medications.length > 0) {
+    html += '<div style="margin-top:20px;padding:0 16px;"><div style="font-size:16px;font-weight:bold;margin-bottom:12px;">各药物统计</div>';
+    for (const med of data.medications) {
+      const medRecords = records.filter(r => r.medId === med.id);
+      const medTaken = medRecords.filter(r => r.taken).length;
+      const medTotal = medRecords.length;
+      const medRate = medTotal > 0 ? Math.round(medTaken / medTotal * 100) : 0;
+      html += `<div class="card" style="margin:0 0 8px 0;">
+        <div style="display:flex;align-items:center;">
+          <div style="font-size:20px;margin-right:12px;">💊</div>
+          <div style="flex:1;">
+            <div style="font-weight:bold;">${esc(med.name)}</div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${medRate}%"></div></div>
+          </div>
+          <div style="font-weight:bold;color:#4CAF50;margin-left:12px;">${medRate}%</div>
+        </div>
+      </div>`;
+    }
+    html += '</div>';
+  }
+  document.getElementById('statsContent').innerHTML = html;
+}
+
+// ============ Medications ============
+function renderMeds() {
+  if (data.medications.length === 0) {
+    document.getElementById('medsList').innerHTML = '<div class="empty"><div class="icon">💊</div>暂无药物<br>点击右下角 + 添加</div>';
+    return;
+  }
+  const days = ['一','二','三','四','五','六','日'];
+  document.getElementById('medsList').innerHTML = data.medications.map(med => {
+    const schText = (med.schedules || []).map(s => {
+      if (s.repeatDays.length === 7) return `${s.time} 每天`;
+      return `${s.time} 周${s.repeatDays.map(d => days[d-1]).join('')}`;
+    }).join('、');
+    return `<div class="card">
+      <div style="display:flex;align-items:center;">
+        <div style="font-size:24px;margin-right:12px;">${med.isActive ? '💊' : '⏸️'}</div>
+        <div style="flex:1;">
+          <div style="font-weight:bold;font-size:16px;${med.isActive?'':'color:#999;'}">${esc(med.name)}</div>
+          <div style="font-size:13px;color:#757575;">${med.dosage||''} ${med.unit||''} | ${schText || '无计划'}</div>
+        </div>
+        <button style="background:#ffebee;color:#f44336;border:none;padding:8px 12px;border-radius:8px;font-size:13px;cursor:pointer;" onclick="deleteMed('${med.id}')">删除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function deleteMed(id) {
+  if (!confirm('确定删除该药物？相关记录也会删除。')) return;
+  data.medications = data.medications.filter(m => m.id !== id);
+  data.records = data.records.filter(r => r.medId !== id);
+  saveData();
+  generateTodayRecords();
+  render();
+}
+
+// ============ Add Modal ============
+function showAddModal() {
+  newSchedules = [];
+  document.getElementById('medName').value = '';
+  document.getElementById('medDosage').value = '';
+  document.getElementById('medUnit').value = '';
+  renderSchedules();
+  document.getElementById('addModal').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('addModal').classList.add('hidden');
+}
+
+function addSchedule() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  newSchedules.push({ time: `${h}:${m}`, repeatDays: [1,2,3,4,5,6,7], active: true });
+  renderSchedules();
+}
+
+function removeSchedule(i) {
+  newSchedules.splice(i, 1);
+  renderSchedules();
+}
+
+function toggleDay(schIdx, day) {
+  const s = newSchedules[schIdx];
+  const idx = s.repeatDays.indexOf(day);
+  if (idx >= 0) s.repeatDays.splice(idx, 1);
+  else s.repeatDays.push(day);
+  s.repeatDays.sort();
+  renderSchedules();
+}
+
+function renderSchedules() {
+  const days = ['一','二','三','四','五','六','日'];
+  document.getElementById('scheduleList').innerHTML = newSchedules.map((s, i) => {
+    const dayBtns = [1,2,3,4,5,6,7].map(d =>
+      `<span onclick="toggleDay(${i},${d})" style="display:inline-block;padding:4px 8px;margin:2px;border-radius:6px;font-size:12px;cursor:pointer;${s.repeatDays.includes(d)?'background:#4CAF50;color:white;':'background:#f0f0f0;color:#666;'}">周${days[d-1]}</span>`
+    ).join('');
+    return `<div style="display:flex;align-items:center;margin-bottom:8px;gap:8px;">
+      <input type="time" value="${s.time}" onchange="newSchedules[${i}].time=this.value" style="padding:8px;border:1px solid #ddd;border-radius:8px;font-size:16px;">
+      <div style="flex:1;">${dayBtns}</div>
+      <button onclick="removeSchedule(${i})" style="background:none;border:none;color:#f44336;font-size:20px;cursor:pointer;">×</button>
+    </div>`;
+  }).join('');
+}
+
+function saveMedication() {
+  const name = document.getElementById('medName').value.trim();
+  if (!name) { alert('请输入药物名称'); return; }
+  data.medications.push({
+    id: genId(),
+    name: name,
+    dosage: document.getElementById('medDosage').value.trim() || null,
+    unit: document.getElementById('medUnit').value.trim() || null,
+    schedules: newSchedules.map(s => ({ ...s })),
+    isActive: true,
+    createdAt: new Date().toISOString()
+  });
+  saveData();
+  generateTodayRecords();
+  closeModal();
+  render();
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// ============ Init ============
+const now = new Date();
+calYear = now.getFullYear();
+calMonth = now.getMonth() + 1;
+loadData();
+render();
+</script>
 </body>
 </html>

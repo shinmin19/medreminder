@@ -143,7 +143,12 @@ class MedProvider extends ChangeNotifier {
 // ==================== App ====================
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+  };
+  runZonedGuarded(() => runApp(const MyApp()), (error, stack) {
+    debugPrint('Uncaught: $error');
+  });
 }
 
 class MyApp extends StatelessWidget {
