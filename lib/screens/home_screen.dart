@@ -42,7 +42,7 @@ class HomeScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              DateFormat('yyyy年M月d日', 'zh_CN').format(now),
+                              _formatDate(now),
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -218,5 +218,13 @@ class HomeScreen extends StatelessWidget {
   String _getWeekdayName(int weekday) {
     const names = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'];
     return names[weekday - 1];
+  }
+
+  String _formatDate(DateTime date) {
+    try {
+      return DateFormat('yyyy年M月d日', 'zh_CN').format(date);
+    } catch (e) {
+      return '${date.year}年${date.month}月${date.day}日';
+    }
   }
 }

@@ -1,28 +1,105 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'providers/medication_provider.dart';
+import 'screens/home_screen.dart';
+import 'screens/calendar_screen.dart';
+import 'screens/stats_screen.dart';
+import 'screens/medication_list_screen.dart';
+import 'screens/add_medication_screen.dart';
+import 'utils/theme.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  FlutterError.onError = (FlutterErrorDetails details) {
+    debugPrint('FlutterError: ${details.exception}');
+  };
+
+  bool intlReady = false;
+  try {
+    await initializeDateFormatting('zh_CN', null).timeout(
+      const Duration(seconds: 5),
+    );
+    intlReady = true;
+  } catch (e) {
+    debugPrint('intl init failed: $e');
+  }
+
+  runApp(MedReminderApp(intlReady: intlReady));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MedReminderApp extends StatelessWidget {
+  final bool intlReady;
+  const MedReminderApp({super.key, required this.intlReady});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '用药提醒',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        useMaterial3: true,
+    return ChangeNotifierProvider(
+      create: (_) => MedicationProvider()..init(),
+      child: MaterialApp(
+        title: '用药提醒',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.greenTheme,
+        home: const MainScreen(),
       ),
-      home: const Scaffold(
-        appBar: AppBar(title: Text('用药提醒')),
-        body: Center(
-          child: Text(
-            'App加载中...',
-            style: TextStyle(fontSize: 24),
-          ),
-        ),
+    );
+  }
+}
+
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  int _currentIndex = 0;
+
+  final List<Widget> _screens = [
+    const HomeScreen(),
+    const CalendarScreen(),
+    const StatsScreen(),
+    const MedicationListScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _screens[_currentIndex],
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddMedicationScreen()),
+          );
+        },
+        backgroundColor: AppTheme.primaryColor,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MedicationListScreen()),
+            );
+          } else {
+            setState(() => _currentIndex = index);
+          }
+        },
+        selectedItemColor: AppTheme.primaryColor,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
+          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: '日历'),
+          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: '统计'),
+          BottomNavigationBarItem(icon: Icon(Icons.medication), label: '药物'),
+        ],
       ),
     );
   }
