@@ -77,7 +77,7 @@ class MedProvider extends ChangeNotifier {
   final _uuid = const Uuid();
 
   List<Medication> get medications => _medications;
-  List<MedicationRecord> get todayRecords {
+  List<MedRecord> get todayRecords {
     final now = DateTime.now();
     return _records.where((r) => r.scheduledTime.year == now.year && r.scheduledTime.month == now.month && r.scheduledTime.day == now.day).toList();
   }
