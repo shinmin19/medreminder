@@ -1,104 +1,28 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:intl/date_symbol_data_local.dart';
-import 'providers/medication_provider.dart';
-import 'screens/home_screen.dart';
-import 'screens/calendar_screen.dart';
-import 'screens/stats_screen.dart';
-import 'screens/medication_list_screen.dart';
-import 'screens/add_medication_screen.dart';
-import 'utils/theme.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Catch all Flutter framework errors
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    debugPrint('FlutterError: ${details.exception}');
-    debugPrint('Stack: ${details.stack}');
-  };
-
-  // Catch all async errors
-  runZonedGuarded(() async {
-    await initializeDateFormatting('zh_CN', null);
-    runApp(const MedReminderApp());
-  }, (error, stack) {
-    debugPrint('Uncaught error: $error');
-    debugPrint('Stack: $stack');
-  });
+void main() {
+  runApp(const MyApp());
 }
 
-class MedReminderApp extends StatelessWidget {
-  const MedReminderApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => MedicationProvider()..init(),
-      child: MaterialApp(
-        title: '用药提醒',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.greenTheme,
-        home: const MainScreen(),
+    return MaterialApp(
+      title: '用药提醒',
+      theme: ThemeData(
+        primarySwatch: Colors.green,
+        useMaterial3: true,
       ),
-    );
-  }
-}
-
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
-
-  @override
-  State<MainScreen> createState() => _MainScreenState();
-}
-
-class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
-
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const CalendarScreen(),
-    const StatsScreen(),
-    const MedicationListScreen(),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: _screens[_currentIndex],
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AddMedicationScreen()),
-          );
-        },
-        backgroundColor: AppTheme.primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          if (index == 3) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const MedicationListScreen()),
-            );
-          } else {
-            setState(() => _currentIndex = index);
-          }
-        },
-        selectedItemColor: AppTheme.primaryColor,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: '日历'),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: '统计'),
-          BottomNavigationBarItem(icon: Icon(Icons.medication), label: '药物'),
-        ],
+      home: const Scaffold(
+        appBar: AppBar(title: Text('用药提醒')),
+        body: Center(
+          child: Text(
+            'App加载中...',
+            style: TextStyle(fontSize: 24),
+          ),
+        ),
       ),
     );
   }
