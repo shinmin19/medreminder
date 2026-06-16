@@ -247,11 +247,11 @@ class _HomePage extends StatelessWidget {
             final color = r.isTaken ? AppTheme.primaryColor : r.isSkipped ? Colors.red : Colors.orange;
             final status = r.isTaken ? '已服用' : r.isSkipped ? '已跳过' : '待服用';
             return Card(margin: const EdgeInsets.only(bottom: 8), child: ListTile(
-              leading: CircleAvatar(backgroundColor: color.withAlpha(25), child: Icon(r.isTaken ? Icons.check : r.isSkipped ? Icons.close : Icons.medication, color: color)),
+              leading: CircleAvatar(backgroundColor: color.withOpacity(0.1), child: Icon(r.isTaken ? Icons.check : r.isSkipped ? Icons.close : Icons.medication, color: color)),
               title: Text(med.name),
               subtitle: Text('${r.scheduledTime.hour.toString().padLeft(2,'0')}:${r.scheduledTime.minute.toString().padLeft(2,'0')} ${med.dosage ?? ''} ${med.unit ?? ''}'),
               trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: color.withAlpha(25), borderRadius: BorderRadius.circular(12)), child: Text(status, style: TextStyle(color: color, fontSize: 12))),
+                Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)), child: Text(status, style: TextStyle(color: color, fontSize: 12))),
                 if (!r.isTaken && !r.isSkipped) ...[
                   const SizedBox(width: 4),
                   IconButton(icon: const Icon(Icons.check_circle, color: AppTheme.primaryColor), onPressed: () => prov.markTaken(r.id)),
@@ -289,7 +289,7 @@ class _CalendarPage extends StatelessWidget {
             final hasRecords = records.isNotEmpty;
             final allTaken = records.isNotEmpty && records.every((r) => r.isTaken);
             return Container(margin: const EdgeInsets.all(2), decoration: BoxDecoration(
-              color: isToday ? AppTheme.primaryColor : allTaken ? AppTheme.primaryColor.withAlpha(25) : null,
+              color: isToday ? AppTheme.primaryColor : allTaken ? AppTheme.primaryColor.withOpacity(0.1) : null,
               borderRadius: BorderRadius.circular(8),
               border: hasRecords && !allTaken ? Border.all(color: Colors.orange, width: 2) : null,
             ), child: Center(child: Text('$day', style: TextStyle(fontWeight: isToday ? FontWeight.bold : FontWeight.normal, color: isToday ? Colors.white : null))));
@@ -343,3 +343,4 @@ class _StatsPage extends StatelessWidget {
     Text(title, style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
   ])));
 }
+
