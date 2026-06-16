@@ -242,7 +242,7 @@ class _HomePage extends StatelessWidget {
             Text(prov.medications.isEmpty ? '暂无用药计划\n点击 + 添加药物' : '今日暂无用药计划', textAlign: TextAlign.center, style: TextStyle(color: AppTheme.textSecondary, fontSize: 16)),
           ]))))
           else ...records.map((r) {
-            final med = prov.medications.where((m) => m.id == r.medicationId).firstOrNull;
+            final med = prov.medications.where((m) => m.id == r.medicationId).isEmpty ? null : prov.medications.firstWhere((m) => m.id == r.medicationId);
             if (med == null) return const SizedBox.shrink();
             final color = r.isTaken ? AppTheme.primaryColor : r.isSkipped ? Colors.red : Colors.orange;
             final status = r.isTaken ? '已服用' : r.isSkipped ? '已跳过' : '待服用';
